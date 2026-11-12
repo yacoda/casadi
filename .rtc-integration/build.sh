@@ -10,9 +10,11 @@
 set -euxo pipefail
 WT=$(cd "$(dirname "$0")/.." && pwd)
 SWIG=${SWIG:-/home/yacoda/programs/swig/install/bin/swig3.0}
-# lacemodelica (the Base Modelica translator of the lacemodelica ModelicaParser plugin): the commit
-# of its rtc-integration branch, which is on yacoda/lacemodelica main
-LACEMODELICA=${LACEMODELICA:-3854835a91ebdc0ac48d7ebbc9692928ed765504}
+# lacemodelica (the Base Modelica translator of the lacemodelica ModelicaParser plugin): main
+# (3854835) plus the RPATH fix that lets the plugin find the ANTLR runtime in CasADi's flat
+# install folder, on branch rpath-origin of yacoda/lacemodelica
+LACEMODELICA=${LACEMODELICA:-92fb80d}
+LACEMODELICA_REPO=${LACEMODELICA_REPO:-https://github.com/yacoda/lacemodelica.git}
 PYTHON=${PYTHON:-$(cd "$WT/.." && pwd)/python/cpython-3.11-linux-x86_64-gnu/bin/python3.11}
 ${CLEAN:+rm -rf "$WT/build"}
 cmake -S "$WT" -B "$WT/build" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$WT/install" \
@@ -25,5 +27,6 @@ cmake -S "$WT" -B "$WT/build" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=
   -DWITH_TINYXML=ON -DWITH_BUILD_TINYXML=ON -DWITH_LIBZIP=ON -DWITH_BUILD_LIBZIP=ON \
   -DWITH_ZLIB=ON -DWITH_BUILD_ZLIB=ON -DWITH_GHC_FILESYSTEM=ON -DWITH_BUILD_GHC_FILESYSTEM=ON \
   -DWITH_ONNX=ON -DWITH_BUILD_ONNX=ON -DWITH_BUILD_PROTOBUF=ON \
-  -DWITH_LACEMODELICA=ON -DWITH_BUILD_LACEMODELICA=ON -DBUILD_LACEMODELICA_VERSION="$LACEMODELICA"
+  -DWITH_LACEMODELICA=ON -DWITH_BUILD_LACEMODELICA=ON -DBUILD_LACEMODELICA_VERSION="$LACEMODELICA" \
+  -DBUILD_LACEMODELICA_GIT_REPO="$LACEMODELICA_REPO"
 cmake --build "$WT/build" --parallel "${JOBS:-16}" --target install
