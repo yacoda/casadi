@@ -10,10 +10,10 @@
 set -euxo pipefail
 WT=$(cd "$(dirname "$0")/.." && pwd)
 SWIG=${SWIG:-/home/yacoda/programs/swig/install/bin/swig3.0}
-# lacemodelica (the Base Modelica translator of the lacemodelica ModelicaParser plugin): main
-# (3854835) plus the RPATH fix that lets the plugin find the ANTLR runtime in CasADi's flat
-# install folder, on branch rpath-origin of yacoda/lacemodelica
-LACEMODELICA=${LACEMODELICA:-92fb80d}
+# lacemodelica (the Base Modelica translator of the lacemodelica ModelicaParser plugin): its
+# rtc-integration branch on yacoda/lacemodelica (main, the RPATH fix that lets the plugin find the
+# ANTLR runtime in CasADi's flat install folder, and its build script)
+LACEMODELICA=${LACEMODELICA:-15595be840baee8d6b8521c620cf78077a6e0091}
 LACEMODELICA_REPO=${LACEMODELICA_REPO:-https://github.com/yacoda/lacemodelica.git}
 PYTHON=${PYTHON:-$(cd "$WT/.." && pwd)/python/cpython-3.11-linux-x86_64-gnu/bin/python3.11}
 ${CLEAN:+rm -rf "$WT/build"}
