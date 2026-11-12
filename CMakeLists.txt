@@ -526,6 +526,37 @@ install(DIRECTORY "${CMAKE_BINARY_DIR}/external_projects/lib/" OPTIONAL DESTINAT
   PATTERN "*upb${CMAKE_STATIC_LIBRARY_SUFFIX}" EXCLUDE
   PATTERN "*utf8_*${CMAKE_STATIC_LIBRARY_SUFFIX}" EXCLUDE
   PATTERN "*protobuf*${CMAKE_STATIC_LIBRARY_SUFFIX}" EXCLUDE)
+# A self-contained install must not depend on the build tree. The libraries and programs that
+# autotools builds (MUMPS, IPOPT, the COIN-OR solvers) keep libtool's RUNPATH into
+# external_projects/lib: they load only as long as the build tree exists. Point such a RUNPATH at
+# the folder they are installed in.
+if(WITH_SELFCONTAINED AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  install(CODE "
+    foreach(_dir IN ITEMS \"${LIB_PREFIX}\" \"${BIN_PREFIX}\")
+      if(NOT IS_ABSOLUTE \"\${_dir}\")
+        set(_dir \"\${CMAKE_INSTALL_PREFIX}/\${_dir}\")
+      endif()
+      file(GLOB _files \"\$ENV{DESTDIR}\${_dir}/*\")
+      foreach(_file IN LISTS _files)
+        if(IS_SYMLINK \"\${_file}\" OR IS_DIRECTORY \"\${_file}\")
+          continue()
+        endif()
+        set(_runpath \"\")
+        set(_rpath \"\")
+        set(_error \"\")
+        file(READ_ELF \"\${_file}\" RUNPATH _runpath RPATH _rpath CAPTURE_ERROR _error)
+        if(_error)
+          continue()
+        endif()
+        foreach(_old IN ITEMS \"\${_runpath}\" \"\${_rpath}\")
+          if(_old MATCHES \"external_projects/lib\")
+            file(RPATH_CHANGE FILE \"\${_file}\" OLD_RPATH \"\${_old}\" NEW_RPATH \"\\$ORIGIN\")
+          endif()
+        endforeach()
+      endforeach()
+    endforeach()
+  ")
+endif()
 if(CMAKE_CROSS_COMPILING)
   install(DIRECTORY ${CMAKE_FIND_ROOT_PATH}/bin/ DESTINATION ${LIB_PREFIX} FILES_MATCHING PATTERN "*${CMAKE_SHARED_LIBRARY_SUFFIX}")
 endif()
